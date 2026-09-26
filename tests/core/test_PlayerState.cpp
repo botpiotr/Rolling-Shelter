@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "core/PlayerState.h"
+#include "core/playerstate.h"
 
 using namespace core;
 
