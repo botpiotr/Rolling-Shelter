@@ -44,17 +44,18 @@ TEST(PlayerState, DefaultStatesAreNeutral)
 TEST(PlayerState, ThresholdRuleAppliesMalusWhenBelowThreshold)
 {
     PlayerState state;
-    state.thirst().set(10); // 10% < seuil de 20%
+    state.thirst().set(5); // 10% sous le seuil de 20%
 
     state.applyThresholdRules(defaultThresholdRules());
 
-    EXPECT_EQ(state.stamina().value(), 99); // -1 appliqué une fois pour la soif
+    EXPECT_EQ(state.stamina().value(), 60); // -10*4 appliqué une fois pour la soif
 }
 
 TEST(PlayerState, ThresholdRuleDoesNotApplyWhenAboveThreshold)
 {
     PlayerState state;
-    state.thirst().set(50); // 50% > seuil de 20%
+    state.thirst().set(100);
+    state.hunger().set(100);
 
     state.applyThresholdRules(defaultThresholdRules());
 
@@ -64,12 +65,12 @@ TEST(PlayerState, ThresholdRuleDoesNotApplyWhenAboveThreshold)
 TEST(PlayerState, MultipleThresholdsStackTheirEffects)
 {
     PlayerState state;
-    state.thirst().set(5);   // sous le seuil
-    state.hunger().set(5);   // sous le seuil aussi
+    state.thirst().set(10);   // sous le seuil de 20%
+    state.hunger().set(10);   // sous le seuil de 20%
 
     state.applyThresholdRules(defaultThresholdRules());
 
-    EXPECT_EQ(state.stamina().value(), 98); // -1 soif, -1 faim
+    EXPECT_EQ(state.stamina().value(), 20); // -1 soif, -1 faim
 }
 
 TEST(PlayerState, SettingDiseaseNameSwitchesHealthStateToMalade)

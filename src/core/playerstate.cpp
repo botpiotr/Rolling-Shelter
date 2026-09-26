@@ -1,4 +1,4 @@
-#include "PlayerState.h"
+#include "playerstate.h"
 
 #include <algorithm>
 
@@ -45,10 +45,18 @@ void Gauge::add(int delta)
 std::vector<ThresholdRule> defaultThresholdRules()
 {
     return {
-            { "soif", 20, "stamina", -1 },
-            { "faim", 20, "stamina", -1 },
-            { "fatigue", 80, "stamina", -1 }, // fatigue haute = moins de stamina
-            { "pollution", 70, "stamina", -1 },
+            { "soif", 20, "stamina", -10 },
+            { "soif", 40, "stamina", -10 },
+            { "soif", 60, "stamina", -10 },
+            { "soif", 80, "stamina", -10 },
+
+            { "faim", 20, "stamina", -10 },
+            { "faim", 40, "stamina", -10 },
+            { "faim", 60, "stamina", -10 },
+            { "faim", 80, "stamina", -10 }
+
+            // { "fatigue", 80, "stamina", 10 }, // fatigue basse = plus de stamina
+            // { "pollution", 70, "stamina", 10 }, // pollution basse = plus de stamina
             };
 }
 
@@ -56,8 +64,8 @@ std::vector<ThresholdRule> defaultThresholdRules()
 
 PlayerState::PlayerState()
     : m_stamina(100, 100)
-    , m_fatigue(0, 100)
-    , m_pollution(0, 100)
+    , m_fatigue(0, 100) // inverted
+    , m_pollution(0, 100) // inverted
     , m_thirst(100, 100)
     , m_hunger(100, 100)
     , m_healthState(HealthState::BienPortant)
@@ -164,7 +172,7 @@ void PlayerState::applyThresholdRules(const std::vector<ThresholdRule> &rules)
             continue; // nom de jauge inconnu : on ignore silencieusement
         }
         if (watched->percent() < rule.threshold) {
-            affected->add(rule.effectDelta);
+            affected->add(rule.effectDelta); // la fatigue et la pollution sont impliquées ??
         }
     }
 }
