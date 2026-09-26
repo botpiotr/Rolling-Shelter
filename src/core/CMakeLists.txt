@@ -1,12 +1,11 @@
 add_library(rolling_shelter_core
-    PlayerState.h
+    playerstate.h
     # TechTree.h
     # Location.h
     # Period.h
     # CombatResolver.h
 
-    PlayerState.cpp
-    playerstate.h playerstate.cpp
+    playerstate.cpp
     # TechTree.cpp
     # Location.cpp
     # Period.cpp
