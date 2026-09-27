@@ -1,6 +1,7 @@
 add_library(rolling_shelter_ui
     MainWindow.h
     HudWidget.h
+    screens/GameScreen.h
     screens/ExplorationScreen.h
     screens/CombatScreen.h
     screens/InventoryScreen.h

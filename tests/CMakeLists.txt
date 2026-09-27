@@ -1,6 +1,7 @@
 add_executable(rolling_shelter_tests
     # core/test_TechTree.cpp
     core/test_PlayerState.cpp
+    core/test_Inventory.cpp
 )
 set_target_properties(rolling_shelter_tests PROPERTIES LINKER_LANGUAGE CXX)
 

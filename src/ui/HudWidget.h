@@ -3,10 +3,11 @@
 #include <QWidget>
 
 class QLabel;
+class QPushButton;
 
 // Barre d'indicateurs globaux, toujours visible en haut de la fenêtre.
-// Pour l'instant : placeholders statiques. Sera connecté à PlayerState (core)
-// une fois cette classe écrite, via des slots publics (updateStamina, etc.)
+// Contient aussi les accès rapides aux inventaires : le sac du joueur est
+// toujours accessible, le véhicule seulement au hangar.
 class HudWidget : public QWidget
 {
     Q_OBJECT
@@ -23,6 +24,13 @@ public slots:
     void updateHealthState(const QString &state);
     void updateMoralState(const QString &state);
 
+    // Le bouton véhicule n'est activé que quand le joueur est au hangar.
+    void setVehicleInventoryEnabled(bool enabled);
+
+signals:
+    void playerInventoryRequested();
+    void vehicleInventoryRequested();
+
 private:
     QLabel *m_staminaLabel;
     QLabel *m_fatigueLabel;
@@ -31,4 +39,7 @@ private:
     QLabel *m_hungerLabel;
     QLabel *m_healthLabel;
     QLabel *m_moralLabel;
+
+    QPushButton *m_playerInventoryButton;
+    QPushButton *m_vehicleInventoryButton;
 };

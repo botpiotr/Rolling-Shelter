@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
 
 namespace {
 QLabel *makeIndicatorLabel(const QString &initialText)
@@ -21,6 +22,8 @@ HudWidget::HudWidget(QWidget *parent)
     , m_hungerLabel(makeIndicatorLabel("Faim: -"))
     , m_healthLabel(makeIndicatorLabel("Santé: -"))
     , m_moralLabel(makeIndicatorLabel("Moral: -"))
+    , m_playerInventoryButton(new QPushButton("Sac"))
+    , m_vehicleInventoryButton(new QPushButton("Véhicule"))
 {
     auto *layout = new QHBoxLayout(this);
     layout->addWidget(m_staminaLabel);
@@ -31,6 +34,15 @@ HudWidget::HudWidget(QWidget *parent)
     layout->addWidget(m_healthLabel);
     layout->addWidget(m_moralLabel);
     layout->addStretch();
+    layout->addWidget(m_playerInventoryButton);
+    layout->addWidget(m_vehicleInventoryButton);
+
+    connect(m_playerInventoryButton, &QPushButton::clicked,
+            this, &HudWidget::playerInventoryRequested);
+    connect(m_vehicleInventoryButton, &QPushButton::clicked,
+            this, &HudWidget::vehicleInventoryRequested);
+
+    setVehicleInventoryEnabled(false); // par défaut : mis à jour par MainWindow
 }
 
 void HudWidget::updateStamina(int value)
@@ -66,4 +78,11 @@ void HudWidget::updateHealthState(const QString &state)
 void HudWidget::updateMoralState(const QString &state)
 {
     m_moralLabel->setText(QString("Moral: %1").arg(state));
+}
+
+void HudWidget::setVehicleInventoryEnabled(bool enabled)
+{
+    m_vehicleInventoryButton->setEnabled(enabled);
+    m_vehicleInventoryButton->setToolTip(
+        enabled ? QString() : "Accessible uniquement au hangar");
 }

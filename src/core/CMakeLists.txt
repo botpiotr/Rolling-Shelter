@@ -1,11 +1,22 @@
 add_library(rolling_shelter_core
+
+    # HEADERS
+    Item.h
+    Location.h
+    InventoryOwner.h
+
     playerstate.h
+    Inventory.h
+    ItemDatabase.h
     # TechTree.h
     # Location.h
     # Period.h
     # CombatResolver.h
 
+    # SRC
     playerstate.cpp
+    Inventory.cpp
+    ItemDatabase.cpp
     # TechTree.cpp
     # Location.cpp
     # Period.cpp
