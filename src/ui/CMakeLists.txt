@@ -13,6 +13,8 @@ add_library(rolling_shelter_ui
     screens/CombatScreen.cpp
     screens/InventoryScreen.cpp
     screens/BaseScreen.cpp
+
+    ${CMAKE_SOURCE_DIR}/resources.qrc
 )
 
 # permet de dire au projet de chercher les fichier dans ce dossier auss

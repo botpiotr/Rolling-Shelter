@@ -1,10 +1,13 @@
 #pragma once
 
+#include <vector>
+
 #include <QMainWindow>
 
 #include "screens/GameScreen.h"
-#include "core/InventoryOwner.h"
+#include "core/Adventure.h"
 #include "core/Inventory.h"
+#include "core/InventoryOwner.h"
 #include "core/ItemDatabase.h"
 #include "core/PlayerState.h"
 
@@ -30,18 +33,26 @@ public slots:
 private slots:
     void onRestRequested();
     void onEndPeriodRequested();
-    void onToggleLocationRequested();
+    void onLeaveHangarRequested();
+    void onReturnToHangarRequested();
+    void onAdventureOptionSelected(QString optionId);
 
     void onPlayerInventoryRequested();
     void onVehicleInventoryRequested();
+    void onInventoryBackRequested();
 
-    void onInventoryActionRequested(InventoryOwner owner, QString itemId, QString action);
-    void onInventoryTransferRequested(InventoryOwner from, QString itemId);
+    void onInventoryActionRequested(core::InventoryOwner owner, QString itemId, QString action);
+    void onInventoryTransferRequested(core::InventoryOwner from, QString itemId);
 
 private:
     // Pousse l'état actuel de m_playerState vers le HUD. À appeler après
     // toute action qui modifie l'état du joueur.
     void refreshHud();
+
+    // Applique la dégradation de fin de période (soif/faim/pollution +
+    // règles de seuil). Utilisé au hangar (bouton dédié) ET à chaque
+    // déplacement en aventure.
+    void applyEndOfPeriodEffects();
 
     core::PlayerState m_playerState;
     core::Inventory m_playerInventory;  // capacité limitée (20)
@@ -49,6 +60,8 @@ private:
     core::ItemDatabase m_itemDatabase;
 
     bool m_atHangar = true; // seul endroit où le véhicule est accessible
+    std::vector<core::AdventureStep> m_adventureSteps;
+    int m_currentAdventureStepIndex = 0;
 
     HudWidget *m_hud;
     QStackedWidget *m_screens;

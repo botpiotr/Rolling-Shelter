@@ -1,30 +1,55 @@
 #pragma once
 
+#include <QString>
 #include <QWidget>
 
-// Écran principal : représente le lieu où se trouve le joueur. Au hangar :
-// repos, craft (à venir), départ en exploration. Actions d'exploration
-// (sous-étapes, lieux...) à venir avec le système de lieux.
+#include "core/Adventure.h"
+
+class QLabel;
+class QPushButton;
+class QVBoxLayout;
+
+// Écran principal : représente le lieu où se trouve le joueur.
+//
+// - Mode Hangar : repos, craft (à venir), départ en exploration. Le repos
+//   n'est disponible que dans ce mode -- impossible de se reposer en
+//   pleine aventure.
+// - Mode Adventure : affiche le lieu courant de l'aventure et ses options,
+//   plus l'action "Rentrer au hangar" toujours disponible.
 class ExplorationScreen : public QWidget
 {
     Q_OBJECT
 
 public:
+    enum class Mode { Hangar, Adventure };
+
     explicit ExplorationScreen(QWidget *parent = nullptr);
 
 public slots:
-    // Met à jour le libellé du bouton de bascule et l'état affiché.
-    void setAtHangar(bool atHangar);
+    void showHangar();
+    void showAdventureStep(const core::AdventureStep &step);
 
 signals:
     void restRequested();
     void endPeriodRequested();
-    // Bascule hangar <-> exploration. Provisoire : en attendant un vrai
-    // système de lieux/déplacement, sert juste à tester la logique de
-    // visibilité de l'inventaire véhicule.
-    void toggleLocationRequested();
+    void leaveHangarRequested();
+    void returnToHangarRequested();
+    // Émis quand le joueur choisit une option à un lieu de l'aventure.
+    void adventureOptionSelected(QString optionId);
 
 private:
-    class QLabel *m_locationLabel;
-    class QPushButton *m_toggleLocationButton;
+    void rebuildOptionButtons(const std::vector<core::AdventureOption> &options);
+    void clearOptionButtons();
+
+    Mode m_mode = Mode::Hangar;
+
+    QLabel *m_locationLabel;
+    QLabel *m_locationImage;
+    QVBoxLayout *m_optionsLayout;
+
+    QPushButton *m_restButton;
+    QPushButton *m_craftButton;
+    QPushButton *m_leaveHangarButton;
+    QPushButton *m_endPeriodButton;
+    QPushButton *m_returnToHangarButton;
 };

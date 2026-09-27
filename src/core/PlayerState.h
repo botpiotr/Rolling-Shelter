@@ -86,8 +86,17 @@ public:
     // de moral eux-mêmes.
     double staminaCostModifier() const;   // ex: 0.9 = -10% de coût en stamina
     double illnessChanceModifier() const; // ex: 0.8 = -20% de chance de tomber malade
+
+    // Modificateur de réussite aux tests : combine le moral ET l'épuisement
+    // (stamina à 0). Toute mécanique qui "teste" une réussite (combat,
+    // craft risqué...) doit multiplier sa chance de base par cette valeur.
     double actionSuccessModifier() const; // ex: 0.9 = -10% de réussite aux tests
     bool isActionBlocked(const std::string &actionId) const;
+
+    // Stamina à 0 : le personnage est épuisé, ne peut plus rien tenter
+    // efficacement tant qu'il ne s'est pas reposé (uniquement possible au
+    // hangar -- géré côté UI/MainWindow, pas ici).
+    bool isStaminaDepleted() const;
 
     // Applique un ensemble de règles de seuil (typiquement en fin de période).
     void applyThresholdRules(const std::vector<ThresholdRule> &rules);

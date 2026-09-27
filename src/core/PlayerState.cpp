@@ -1,4 +1,4 @@
-#include "playerstate.h"
+#include "PlayerState.h"
 
 #include <algorithm>
 
@@ -45,27 +45,27 @@ void Gauge::add(int delta)
 std::vector<ThresholdRule> defaultThresholdRules()
 {
     return {
-            { "soif", 20, "stamina", -10 },
-            { "soif", 40, "stamina", -10 },
-            { "soif", 60, "stamina", -10 },
-            { "soif", 80, "stamina", -10 },
+        { "soif", 20, "stamina", -10 },
+        { "soif", 40, "stamina", -10 },
+        { "soif", 60, "stamina", -10 },
+        { "soif", 80, "stamina", -10 },
 
-            { "faim", 20, "stamina", -10 },
-            { "faim", 40, "stamina", -10 },
-            { "faim", 60, "stamina", -10 },
-            { "faim", 80, "stamina", -10 }
+        { "faim", 20, "stamina", -10 },
+        { "faim", 40, "stamina", -10 },
+        { "faim", 60, "stamina", -10 },
+        { "faim", 80, "stamina", -10 }
 
-            // { "fatigue", 80, "stamina", 10 }, // fatigue basse = plus de stamina
-            // { "pollution", 70, "stamina", 10 }, // pollution basse = plus de stamina
-            };
+        // { "fatigue", 80, "stamina", 10 }, // fatigue basse = plus de stamina
+        // { "pollution", 70, "stamina", 10 }, // pollution basse = plus de stamina
+    };
 }
 
 // --- PlayerState ---
 
 PlayerState::PlayerState()
     : m_stamina(100, 100)
-    , m_fatigue(0, 100) // inverted
-    , m_pollution(0, 100) // inverted
+    , m_fatigue(0, 100)
+    , m_pollution(0, 100)
     , m_thirst(100, 100)
     , m_hunger(100, 100)
     , m_healthState(HealthState::BienPortant)
@@ -146,12 +146,23 @@ double PlayerState::illnessChanceModifier() const
 
 double PlayerState::actionSuccessModifier() const
 {
+    double modifier = 1.0;
     switch (m_moralState) {
     case MoralState::Triste:
-        return 0.9; // -10% de réussite aux tests
+        modifier *= 0.9; // -10% de réussite aux tests
+        break;
     default:
-        return 1.0;
+        break;
     }
+    if (isStaminaDepleted()) {
+        modifier *= 0.5; // épuisé : tous les tests suivants sont pénalisés
+    }
+    return modifier;
+}
+
+bool PlayerState::isStaminaDepleted() const
+{
+    return m_stamina.value() <= 0;
 }
 
 bool PlayerState::isActionBlocked(const std::string &actionId) const
@@ -172,7 +183,7 @@ void PlayerState::applyThresholdRules(const std::vector<ThresholdRule> &rules)
             continue; // nom de jauge inconnu : on ignore silencieusement
         }
         if (watched->percent() < rule.threshold) {
-            affected->add(rule.effectDelta); // la fatigue et la pollution sont impliquées ??
+            affected->add(rule.effectDelta);
         }
     }
 }

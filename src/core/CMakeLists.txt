@@ -5,18 +5,20 @@ add_library(rolling_shelter_core
     Location.h
     InventoryOwner.h
 
-    playerstate.h
+    PlayerState.h
     Inventory.h
     ItemDatabase.h
+    Adventure.h
     # TechTree.h
     # Location.h
     # Period.h
     # CombatResolver.h
 
     # SRC
-    playerstate.cpp
+    PlayerState.cpp
     Inventory.cpp
     ItemDatabase.cpp
+    Adventure.cpp
     # TechTree.cpp
     # Location.cpp
     # Period.cpp

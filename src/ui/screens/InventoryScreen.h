@@ -35,13 +35,15 @@ public:
 
 signals:
     // action ∈ {"jeter", "consommer", "utiliser", "reparer", "assembler"}
-    void actionRequested(InventoryOwner owner, QString itemId, QString action);
+    void actionRequested(core::InventoryOwner owner, QString itemId, QString action);
     // Déplace 1 unité de l'objet depuis `from` vers l'autre inventaire.
-    void transferRequested(InventoryOwner from, QString itemId);
+    void transferRequested(core::InventoryOwner from, QString itemId);
+    // Retour à l'écran principal (hangar ou aventure en cours).
+    void backRequested();
 
 private:
     void rebuildSection(QVBoxLayout *parentLayout, const QString &title,
-                        InventoryOwner owner, core::Inventory *inventory,
+                        core::InventoryOwner owner, core::Inventory *inventory,
                         bool showTransferButton);
 
     Mode m_mode = Mode::PlayerOnly;

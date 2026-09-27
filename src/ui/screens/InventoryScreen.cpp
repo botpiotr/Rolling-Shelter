@@ -26,6 +26,12 @@ void clearLayout(QLayout *layout)
 InventoryScreen::InventoryScreen(QWidget *parent)
     : QWidget(parent)
 {
+    auto *outerLayout = new QVBoxLayout(this);
+
+    auto *backButton = new QPushButton("< Retour");
+    connect(backButton, &QPushButton::clicked, this, &InventoryScreen::backRequested);
+    outerLayout->addWidget(backButton);
+
     auto *scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
 
@@ -34,8 +40,6 @@ InventoryScreen::InventoryScreen(QWidget *parent)
     m_rootLayout->addStretch();
 
     scrollArea->setWidget(content);
-
-    auto *outerLayout = new QVBoxLayout(this);
     outerLayout->addWidget(scrollArea);
 }
 
@@ -54,11 +58,11 @@ void InventoryScreen::refresh()
 {
     clearLayout(m_rootLayout);
 
-    rebuildSection(m_rootLayout, "Sac (joueur)", InventoryOwner::Player,
+    rebuildSection(m_rootLayout, "Sac (joueur)", core::InventoryOwner::Player,
                    m_playerInventory, m_mode == Mode::Hangar);
 
     if (m_mode == Mode::Hangar) {
-        rebuildSection(m_rootLayout, "Véhicule", InventoryOwner::Vehicle,
+        rebuildSection(m_rootLayout, "Véhicule", core::InventoryOwner::Vehicle,
                        m_vehicleInventory, true);
     }
 
@@ -66,7 +70,7 @@ void InventoryScreen::refresh()
 }
 
 void InventoryScreen::rebuildSection(QVBoxLayout *parentLayout, const QString &title,
-                                     InventoryOwner owner, core::Inventory *inventory,
+                                     core::InventoryOwner owner, core::Inventory *inventory,
                                      bool showTransferButton)
 {
     auto *sectionTitle = new QLabel(title);
@@ -119,7 +123,7 @@ void InventoryScreen::rebuildSection(QVBoxLayout *parentLayout, const QString &t
         addActionButton("Jeter", "jeter");
 
         if (showTransferButton) {
-            const QString transferLabel = owner == InventoryOwner::Player ? "Déposer" : "Prendre";
+            const QString transferLabel = owner == core::InventoryOwner::Player ? "Déposer" : "Prendre";
             auto *transferBtn = new QPushButton(transferLabel);
             connect(transferBtn, &QPushButton::clicked, this, [this, owner, itemId] {
                 emit transferRequested(owner, itemId);

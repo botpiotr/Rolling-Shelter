@@ -1,6 +1,11 @@
 #pragma once
 
-enum class InventoryOwner {
-    Player,
-    Vehicle
-};
+
+namespace core {
+
+    enum class InventoryOwner {
+        Player,
+        Vehicle
+    };
+
+}

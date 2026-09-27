@@ -17,6 +17,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_vehicleInventory(std::nullopt)
     , m_itemDatabase(core::defaultTestItems())
     , m_atHangar(true)
+    , m_adventureSteps()
+    , m_currentAdventureStepIndex(0)
     , m_hud(new HudWidget(this))
     , m_screens(new QStackedWidget(this))
     , m_explorationScreen(new ExplorationScreen(this))
@@ -42,8 +44,12 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onRestRequested);
     connect(m_explorationScreen, &ExplorationScreen::endPeriodRequested,
             this, &MainWindow::onEndPeriodRequested);
-    connect(m_explorationScreen, &ExplorationScreen::toggleLocationRequested,
-            this, &MainWindow::onToggleLocationRequested);
+    connect(m_explorationScreen, &ExplorationScreen::leaveHangarRequested,
+            this, &MainWindow::onLeaveHangarRequested);
+    connect(m_explorationScreen, &ExplorationScreen::returnToHangarRequested,
+            this, &MainWindow::onReturnToHangarRequested);
+    connect(m_explorationScreen, &ExplorationScreen::adventureOptionSelected,
+            this, &MainWindow::onAdventureOptionSelected);
 
     connect(m_hud, &HudWidget::playerInventoryRequested,
             this, &MainWindow::onPlayerInventoryRequested);
@@ -54,6 +60,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onInventoryActionRequested);
     connect(m_inventoryScreen, &InventoryScreen::transferRequested,
             this, &MainWindow::onInventoryTransferRequested);
+    connect(m_inventoryScreen, &InventoryScreen::backRequested,
+            this, &MainWindow::onInventoryBackRequested);
 
     // Quelques objets de départ pour tester le système (provisoire).
     if (const auto bois = m_itemDatabase.find("bois")) {
@@ -66,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
         m_vehicleInventory.addItem(*metal, 30);
     }
 
-    m_explorationScreen->setAtHangar(m_atHangar);
+    m_explorationScreen->showHangar();
     m_hud->setVehicleInventoryEnabled(m_atHangar);
 
     showScreen(GameScreen::Exploration);
@@ -93,6 +101,9 @@ void MainWindow::showScreen(GameScreen screen)
 
 void MainWindow::onRestRequested()
 {
+    if (!m_atHangar) {
+        return; // sécurité : le bouton est de toute façon masqué en aventure
+    }
     // Valeurs provisoires (à équilibrer plus tard) : se reposer récupère
     // de la stamina et réduit la fatigue accumulée.
     m_playerState.stamina().add(20);
@@ -101,6 +112,11 @@ void MainWindow::onRestRequested()
 }
 
 void MainWindow::onEndPeriodRequested()
+{
+    applyEndOfPeriodEffects();
+}
+
+void MainWindow::applyEndOfPeriodEffects()
 {
     // Dégradation naturelle de la période (provisoire) : soif/faim baissent,
     // la pollution ambiante augmente légèrement (thématique choisie pour le
@@ -114,21 +130,47 @@ void MainWindow::onEndPeriodRequested()
     refreshHud();
 }
 
-void MainWindow::onToggleLocationRequested()
+void MainWindow::onLeaveHangarRequested()
 {
-    // Provisoire : bascule un simple booléen. Sera remplacé par un vrai
-    // déplacement entre lieux une fois le système de lieux en place.
-    m_atHangar = !m_atHangar;
+    m_atHangar = false;
+    m_adventureSteps = core::defaultTestAdventure();
+    m_currentAdventureStepIndex = 0;
 
-    m_explorationScreen->setAtHangar(m_atHangar);
-    m_hud->setVehicleInventoryEnabled(m_atHangar);
+    m_hud->setVehicleInventoryEnabled(false);
+    m_explorationScreen->showAdventureStep(m_adventureSteps[m_currentAdventureStepIndex]);
+}
 
-    // Si le joueur quitte le hangar pendant qu'il consultait l'inventaire
-    // du véhicule, on revient à l'écran d'exploration pour éviter un état
-    // incohérent (véhicule affiché alors qu'il n'est plus accessible).
-    if (!m_atHangar && m_screens->currentWidget() == m_inventoryScreen) {
+void MainWindow::onReturnToHangarRequested()
+{
+    m_atHangar = true;
+    m_adventureSteps.clear();
+    m_currentAdventureStepIndex = 0;
+
+    m_hud->setVehicleInventoryEnabled(true);
+    m_explorationScreen->showHangar();
+
+    // Si le joueur consultait l'inventaire quand il est rentré, on revient
+    // à l'écran principal pour éviter un état incohérent.
+    if (m_screens->currentWidget() == m_inventoryScreen) {
         showScreen(GameScreen::Exploration);
     }
+}
+
+void MainWindow::onAdventureOptionSelected(QString /*optionId*/)
+{
+    // Provisoire : quelle que soit l'option choisie, se déplacer fait
+    // avancer la période (comme défini dans le GDD : changer de lieu =
+    // changer de période) et fait passer à l'arrêt suivant de l'aventure.
+    // Les effets spécifiques par option (fouiller vs continuer) viendront
+    // avec le vrai système de lieux/tech tree.
+    applyEndOfPeriodEffects();
+
+    ++m_currentAdventureStepIndex;
+    if (m_currentAdventureStepIndex >= static_cast<int>(m_adventureSteps.size())) {
+        onReturnToHangarRequested();
+        return;
+    }
+    m_explorationScreen->showAdventureStep(m_adventureSteps[m_currentAdventureStepIndex]);
 }
 
 void MainWindow::onPlayerInventoryRequested()
@@ -150,10 +192,15 @@ void MainWindow::onVehicleInventoryRequested()
     showScreen(GameScreen::Inventory);
 }
 
-void MainWindow::onInventoryActionRequested(InventoryOwner owner, QString itemId, QString action)
+void MainWindow::onInventoryBackRequested()
+{
+    showScreen(GameScreen::Exploration);
+}
+
+void MainWindow::onInventoryActionRequested(core::InventoryOwner owner, QString itemId, QString action)
 {
     core::Inventory &inventory =
-        (owner == InventoryOwner::Player) ? m_playerInventory : m_vehicleInventory;
+        (owner == core::InventoryOwner::Player) ? m_playerInventory : m_vehicleInventory;
     const std::string id = itemId.toStdString();
     const auto itemDef = m_itemDatabase.find(id);
 
@@ -176,16 +223,16 @@ void MainWindow::onInventoryActionRequested(InventoryOwner owner, QString itemId
     refreshHud();
 }
 
-void MainWindow::onInventoryTransferRequested(InventoryOwner from, QString itemId)
+void MainWindow::onInventoryTransferRequested(core::InventoryOwner from, QString itemId)
 {
     if (!m_atHangar) {
         return; // le transfert n'a de sens qu'au hangar
     }
 
     core::Inventory &source =
-        (from == InventoryOwner::Player) ? m_playerInventory : m_vehicleInventory;
+        (from == core::InventoryOwner::Player) ? m_playerInventory : m_vehicleInventory;
     core::Inventory &destination =
-        (from == InventoryOwner::Player) ? m_vehicleInventory : m_playerInventory;
+        (from == core::InventoryOwner::Player) ? m_vehicleInventory : m_playerInventory;
 
     const std::string id = itemId.toStdString();
     const auto itemDef = m_itemDatabase.find(id);
