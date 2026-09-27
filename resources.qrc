@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="decrepit_shed_1">data/images/locations/decrepit_shed.jpg</file>
+    </qresource>
+</RCC>
